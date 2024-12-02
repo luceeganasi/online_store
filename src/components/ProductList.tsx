@@ -34,15 +34,15 @@ export function ProductList({ addToCart }: ProductListProps) {
   }, [])
 
   if (loading) {
-    return <div>Loading products...</div>
+    return <div className="text-center text-gray-700">Loading products...</div>
   }
 
   if (error) {
-    return <div>Error: {error}</div>
+    return <div className="text-center text-red-600">Error: {error}</div>
   }
 
   if (products.length === 0) {
-    return <div>No products available.</div>
+    return <div className="text-center text-gray-700">No products available.</div>
   }
 
   return (
@@ -50,14 +50,14 @@ export function ProductList({ addToCart }: ProductListProps) {
       <h2 id="products-heading" className="sr-only">Products</h2>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {products.map((product) => (
-          <div key={product.Variant_ID} className="border rounded-lg p-4 bg-white">
-            <h3 className="text-lg font-semibold">{product.Product_Name}</h3>
-            <p className="text-2xl font-bold mt-2">${parseFloat(product.Price).toFixed(2)}</p>
-            <p className="mt-1">Size: {product.Size}, Color: {product.Color}</p>
-            <p className="mt-1">In stock: {product.Stock}</p>
+          <div key={product.Variant_ID} className="border rounded-lg p-4 bg-white shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900">{product.Product_Name}</h3>
+            <p className="text-2xl font-bold mt-2 text-blue-600">${parseFloat(product.Price).toFixed(2)}</p>
+            <p className="mt-1 text-gray-600">Size: {product.Size}, Color: {product.Color}</p>
+            <p className="mt-1 text-gray-600">In stock: {product.Stock}</p>
             <button 
               onClick={() => addToCart(product)}
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
               aria-label={`Add ${product.Product_Name} to cart`}
             >
               Add to Cart

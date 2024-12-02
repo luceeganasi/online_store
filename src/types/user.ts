@@ -5,5 +5,3 @@ export interface User {
     Customer_Email: string;
     Customer_Phone: string;
   }
-  
-  

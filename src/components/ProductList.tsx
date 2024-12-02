@@ -14,18 +14,19 @@ export function ProductList({ addToCart }: ProductListProps) {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
         const response = await fetch('/api/products')
         if (!response.ok) {
-          throw new Error('Failed to fetch products')
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json()
         setProducts(data)
-        setLoading(false)
       } catch (error) {
         console.error('Error fetching products:', error)
         setError('Failed to load products. Please try again later.')
-        setLoading(false)
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -40,12 +41,16 @@ export function ProductList({ addToCart }: ProductListProps) {
     return <div>Error: {error}</div>
   }
 
+  if (products.length === 0) {
+    return <div>No products available.</div>
+  }
+
   return (
     <section aria-labelledby="products-heading">
       <h2 id="products-heading" className="sr-only">Products</h2>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {products.map((product) => (
-          <div key={product.Product_ID} className="border rounded-lg p-4 bg-white">
+          <div key={product.Variant_ID} className="border rounded-lg p-4 bg-white">
             <h3 className="text-lg font-semibold">{product.Product_Name}</h3>
             <p className="text-2xl font-bold mt-2">${parseFloat(product.Price).toFixed(2)}</p>
             <p className="mt-1">Size: {product.Size}, Color: {product.Color}</p>

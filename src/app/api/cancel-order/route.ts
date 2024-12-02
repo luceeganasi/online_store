@@ -3,10 +3,10 @@ import { RowDataPacket, OkPacket } from 'mysql2'
 import pool from '@/lib/db'
 
 export async function POST(request: Request) {
-  const { order_id, customer_id } = await request.json()
-
-  let connection
+  let connection;
   try {
+    const { order_id, customer_id } = await request.json()
+
     connection = await pool.getConnection()
     
     // Start transaction
@@ -69,9 +69,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: 'Order cancelled successfully' })
   } catch (error) {
+    console.error('Error in cancel-order API:', error)
     if (connection) await connection.rollback()
-    console.error('Error cancelling order:', error)
-    return NextResponse.json({ error: 'Failed to cancel order. Please try again later.' }, { status: 500 })
+    return NextResponse.json({ error: 'An unexpected error occurred. Please try again later.' }, { status: 500 })
   } finally {
     if (connection) connection.release()
   }

@@ -5,7 +5,7 @@ export async function GET() {
   let connection;
   try {
     connection = await pool.getConnection()
-    // In a real application, you would get the user ID from the session
+    
     // For this example, we'll just fetch the first user
     const [rows] = await connection.query('SELECT * FROM customer LIMIT 1')
     if (Array.isArray(rows) && rows.length > 0) {

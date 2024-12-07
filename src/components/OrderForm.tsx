@@ -1,61 +1,46 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Product } from '@/types/product'
+import React, { useState } from 'react'
+import { CartItem } from '@/types/product'
 import { User } from '@/types/user'
 
 interface OrderFormProps {
-  items: Product[]
+  items: CartItem[]
+  user: User
+  total: number
+  shippingCost: number
   onClose: () => void
 }
 
 const paymentMethods = ['Cash', 'PayPal', 'Credit Card', 'Debit Card']
 
-export function OrderForm({ items, onClose }: OrderFormProps) {
-  const [user, setUser] = useState<User | null>(null)
+export function OrderForm({ items, user, total, shippingCost, onClose }: OrderFormProps) {
   const [orderId, setOrderId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(paymentMethods[0])
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch('/api/user')
-        if (!response.ok) {
-          throw new Error('Failed to fetch user')
-        }
-        const userData = await response.json()
-        setUser(userData)
-      } catch (error) {
-        console.error('Error fetching user:', error)
-        setError('Failed to load user information. Please try again.')
-      }
-    }
-
-    fetchUser()
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
 
-    const total = items.reduce((sum, item) => sum + parseFloat(item.Price), 0)
-
     const orderData = {
-      customer_id: user?.Customer_ID,
+      customer_id: user.Customer_ID,
       total_amount: total,
       payment_method: selectedPaymentMethod,
       items: items.map(item => ({
         variant_id: item.Variant_ID,
-        bundle_id: item.Bundle_ID,
-        quantity: 1,
+        bundle_id: item.Bundle_ID || 'BN01',
+        quantity: item.quantity,
         price: parseFloat(item.Price)
-      }))
+      })),
+      shipping_address: user.Customer_Address
     }
 
     try {
+      console.log('Sending order data:', JSON.stringify(orderData, null, 2))
+
       const response = await fetch('/api/place-order', {
         method: 'POST',
         headers: {
@@ -64,7 +49,7 @@ export function OrderForm({ items, onClose }: OrderFormProps) {
         body: JSON.stringify(orderData),
       })
 
-      const contentType = response.headers.get("content-type");
+      const contentType = response.headers.get("content-type")
       if (contentType && contentType.indexOf("application/json") !== -1) {
         const result = await response.json()
         if (!response.ok) {
@@ -74,9 +59,10 @@ export function OrderForm({ items, onClose }: OrderFormProps) {
       } else {
         const text = await response.text()
         console.error('Received non-JSON response:', text)
-        throw new Error('Server error: Received HTML instead of JSON. Check server logs for details.')
+        throw new Error('Server error: Received unexpected response. Check server logs for details.')
       }
     } catch (error) {
+      console.error('Error placing order:', error)
       if (error instanceof Error) {
         setError(`Failed to place order: ${error.message}`)
       } else {
@@ -87,30 +73,28 @@ export function OrderForm({ items, onClose }: OrderFormProps) {
     }
   }
 
-  if (!user) {
-    return <div className="text-center text-gray-700">Loading user information...</div>
-  }
-
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" aria-modal="true" role="dialog">
       <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Place Order</h3>
+        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Confirm Order</h3>
         {error && <p className="text-red-600 mb-4">{error}</p>}
         {!orderId ? (
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <p><strong>Customer:</strong> {user.Customer_Name}</p>
               <p><strong>Email:</strong> {user.Customer_Email}</p>
-              <p><strong>Address:</strong> {user.Customer_Address}</p>
+              <p><strong>Shipping Address:</strong> {user.Customer_Address}</p>
             </div>
             <div className="mb-4">
               <h4 className="font-medium text-gray-900">Order Summary</h4>
               <ul>
                 {items.map((item, index) => (
-                  <li key={index} className="text-gray-700">{item.Product_Name} - ${parseFloat(item.Price).toFixed(2)}</li>
+                  <li key={index} className="text-gray-700">{item.Product_Name} - ${parseFloat(item.Price).toFixed(2)} x {item.quantity}</li>
                 ))}
               </ul>
-              <p className="font-bold mt-2 text-gray-900">Total: ${items.reduce((sum, item) => sum + parseFloat(item.Price), 0).toFixed(2)}</p>
+              <p className="mt-2 text-gray-700">Subtotal: ${(total - shippingCost).toFixed(2)}</p>
+              <p className="text-gray-700">Shipping: ${shippingCost.toFixed(2)}</p>
+              <p className="font-bold mt-2 text-gray-900">Total: ${total.toFixed(2)}</p>
             </div>
             <div className="mb-4">
               <label htmlFor="payment-method" className="block text-sm font-medium text-gray-700">Payment Method</label>
@@ -141,7 +125,7 @@ export function OrderForm({ items, onClose }: OrderFormProps) {
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 disabled={isLoading}
               >
-                {isLoading ? 'Placing Order...' : 'Place Order'}
+                {isLoading ? 'Placing Order...' : 'Confirm Order'}
               </button>
             </div>
           </form>

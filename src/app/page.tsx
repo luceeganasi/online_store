@@ -6,13 +6,15 @@ import { ProductList } from '../components/ProductList'
 import { Cart } from '../components/Cart'
 import { OrderForm } from '../components/OrderForm'
 import { OrderHistory } from '../components/OrderHistory'
-import { Product } from '../types/product'
+import { Product, CartItem } from '../types/product'
 import { User } from '../types/user'
 
 export default function Home() {
-  const [cartItems, setCartItems] = useState<Product[]>([])
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [showOrderForm, setShowOrderForm] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [currency, setCurrency] = useState('EUR')
+  const [shippingCost, setShippingCost] = useState(5.99)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -32,24 +34,61 @@ export default function Home() {
   }, [])
 
   const addToCart = (product: Product) => {
-    setCartItems([...cartItems, product])
+    setCartItems(prevItems => {
+      const existingItem = prevItems.find(item => item.Variant_ID === product.Variant_ID)
+      if (existingItem) {
+        return prevItems.map(item =>
+          item.Variant_ID === product.Variant_ID
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      } else {
+        return [...prevItems, { ...product, quantity: 1 }]
+      }
+    })
   }
 
-  const removeFromCart = (index: number) => {
-    const newCartItems = [...cartItems]
-    newCartItems.splice(index, 1)
-    setCartItems(newCartItems)
+  const removeFromCart = (variantId: string) => {
+    setCartItems(prevItems => prevItems.filter(item => item.Variant_ID !== variantId))
   }
 
-  const placeOrder = () => {
+  const updateQuantity = (variantId: string, newQuantity: number) => {
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.Variant_ID === variantId
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
+    )
+  }
+
+  const handleShowOrderForm = () => {
     setShowOrderForm(true)
+  }
+
+  const handleCloseOrderForm = () => {
+    setShowOrderForm(false)
   }
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
       <header className="bg-blue-600 shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">Online Store</h1>
+          <div className="flex items-center space-x-4">
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="bg-white text-gray-900 py-1 px-2 rounded"
+            >
+              <option value="EUR">EUR</option>
+              <option value="USD">USD</option>
+              <option value="GBP">GBP</option>
+            </select>
+            <Link href="/cancel-order" className="text-white hover:text-gray-200">
+              Cancel Order
+            </Link>
+          </div>
         </div>
       </header>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -60,13 +99,25 @@ export default function Home() {
               {user && <OrderHistory user={user} />}
             </div>
             <div>
-              <Cart items={cartItems} removeFromCart={removeFromCart} placeOrder={placeOrder} />
+              <Cart
+                items={cartItems}
+                removeFromCart={removeFromCart}
+                updateQuantity={updateQuantity}
+                onShowOrderForm={handleShowOrderForm}
+                setShippingCost={setShippingCost}
+              />
             </div>
           </div>
         </div>
       </main>
-      {showOrderForm && (
-        <OrderForm items={cartItems} onClose={() => setShowOrderForm(false)} />
+      {showOrderForm && user && (
+        <OrderForm
+          items={cartItems}
+          user={user}
+          total={cartItems.reduce((sum, item) => sum + parseFloat(item.Price) * item.quantity, 0) + shippingCost}
+          shippingCost={shippingCost}
+          onClose={handleCloseOrderForm}
+        />
       )}
     </div>
   )

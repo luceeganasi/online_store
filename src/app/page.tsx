@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { ProductList } from '../components/ProductList'
 import { Cart } from '../components/Cart'
 import { OrderForm } from '../components/OrderForm'
@@ -75,19 +74,7 @@ export default function Home() {
       <header className="bg-blue-600 shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">Online Store</h1>
-          <div className="flex items-center space-x-4">
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="bg-white text-gray-900 py-1 px-2 rounded"
-            >
-              <option value="EUR">EUR</option>
-              <option value="USD">USD</option>
-              <option value="GBP">GBP</option>
-            </select>
-            <Link href="/cancel-order" className="text-white hover:text-gray-200">
-              Cancel Order
-            </Link>
+          <div className="flex items-center space-x-4">            
           </div>
         </div>
       </header>

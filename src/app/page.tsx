@@ -9,12 +9,19 @@ import { Product, CartItem } from '../types/product'
 import { User } from '../types/user'
 
 export default function Home() {
+  // State for managing cart items
   const [cartItems, setCartItems] = useState<CartItem[]>([])
+
+  // State for controlling the visibility of the order form
   const [showOrderForm, setShowOrderForm] = useState(false)
+
+  // State for storing user information
   const [user, setUser] = useState<User | null>(null)
-  const [currency, setCurrency] = useState('EUR')
+
+  // State for shipping cost
   const [shippingCost, setShippingCost] = useState(5.99)
 
+  // Fetch user data when the component mounts
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -32,6 +39,11 @@ export default function Home() {
     fetchUser()
   }, [])
 
+  /**
+   * Add a product to the cart
+   * If the product is already in the cart, increase its quantity
+   * Otherwise, add it as a new item with quantity 1
+   */
   const addToCart = (product: Product) => {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.Variant_ID === product.Variant_ID)
@@ -47,10 +59,18 @@ export default function Home() {
     })
   }
 
+
+  /**
+   * Remove an item from the cart based on its variant ID
+   */
   const removeFromCart = (variantId: string) => {
     setCartItems(prevItems => prevItems.filter(item => item.Variant_ID !== variantId))
   }
 
+
+  /**
+   * Update the quantity of an item in the cart
+   */
   const updateQuantity = (variantId: string, newQuantity: number) => {
     setCartItems(prevItems =>
       prevItems.map(item =>
@@ -61,10 +81,18 @@ export default function Home() {
     )
   }
 
+
+  /**
+   * Show the order form
+   */
   const handleShowOrderForm = () => {
     setShowOrderForm(true)
   }
 
+
+  /**
+   * Close the order form
+   */
   const handleCloseOrderForm = () => {
     setShowOrderForm(false)
   }

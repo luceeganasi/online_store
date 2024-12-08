@@ -11,6 +11,7 @@ function generateId(prefix: string) {
 export async function POST(request: Request) {
   let connection;
   try {
+    // Parse the request body
     const body = await request.json();
     console.log('Received order data:', JSON.stringify(body, null, 2));
 
@@ -23,9 +24,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid order data. Please check all required fields are provided.' }, { status: 400 });
     }
 
+
+    // Acquire a database connection from the connection pool
     connection = await pool.getConnection();
     await connection.beginTransaction();
 
+    // Generate a unique order ID
     const orderId = generateId('OD');
 
     // Insert into orders table

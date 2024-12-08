@@ -4,7 +4,10 @@ import pool from '@/lib/db'
 export async function GET() {
   let connection;
   try {
+    // Get a connection from the pool
     connection = await pool.getConnection()
+
+    // Query to fetch products with their variants
     const [rows] = await connection.query(`
       SELECT 
         p.Product_ID, 

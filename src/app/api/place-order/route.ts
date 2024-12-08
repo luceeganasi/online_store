@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { RowDataPacket, OkPacket } from 'mysql2';
 import pool from '@/lib/db';
 
+
+// Helper function to generate unique IDs
 function generateId(prefix: string) {
   return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).substr(2, 5)}`;
 }
@@ -14,6 +16,8 @@ export async function POST(request: Request) {
 
     const { customer_id, total_amount, payment_method, items, shipping_address } = body;
 
+
+    // Validate input data
     if (!customer_id || !total_amount || !payment_method || !items || items.length === 0 || !shipping_address) {
       console.error('Invalid order data:', { customer_id, total_amount, payment_method, items, shipping_address });
       return NextResponse.json({ error: 'Invalid order data. Please check all required fields are provided.' }, { status: 400 });
